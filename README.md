@@ -67,7 +67,7 @@ volume mixer, and everything one keystroke away.*
 Quick (installs klangtui + its deps + the `klangtui` command):
 
 ```bash
-pip install git+https://github.com/kfrttlw/klangtui.git
+pip install git+https://github.com/kfrttlw/klangtui
 klangtui
 ```
 
