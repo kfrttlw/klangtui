@@ -5,6 +5,18 @@ SoundCloud player in your terminal — search, play, like, playlists.
 Sister project of [veltui](https://github.com/kfrttlw/veltui), built on the same trick:
 a headless Firefox does the heavy lifting.
 
+![klangtui — the Discover front page with real cover art in the terminal](image/g.png)
+
+*Discover, in the terminal: real cover art drawn in glyphs, a top nav bar with a clickable
+volume mixer, and everything one keystroke away.*
+
+<details>
+<summary>… and the <code>/</code> command palette</summary>
+
+![klangtui — the live command menu](image/f.png)
+
+</details>
+
 ## Features
 
 - **A top nav bar, like the site** — `home`, `library`, `likes`, `profile` buttons pinned
