@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtualenv
+.venv/
+venv/
+
+# Tooling caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# klangtui local data (prefs + the Firefox profile live in ~/.klangtui, but just in case)
+*.sqlite
+
+# the reference project that lives next to klangtui — it has its own repo
+veltui_dor_demo/
