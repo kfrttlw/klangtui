@@ -769,7 +769,7 @@ class SCBackend:
         if kind == "related":
             _ensure_ready(on_status)
             on_status("tuning the radio…")
-            j = _api_get(f"/tracks/{job['track']['id']}/related", limit=25)
+            j = _api_get(f"/tracks/{job['track']['id']}/related", limit=50)
             return _collection(j)
         if kind == "play":
             return self._handle_play(job, on_status)
@@ -1915,6 +1915,7 @@ class KlangtuiTUI(App):
         self._wave: list[int] | None = None   # the track's real waveform, in glyph levels
         self._repeat = "off"                  # off · all · one
         self._liked_ids: set = set()          # likes toggled this session (marker)
+        self._radio_seen: set = set()         # track ids radio has surfaced — keep it fresh
         # artwork cache (rendered Text) + widgets waiting for a fetch in flight
         self._art_texts: dict = {}
         self._art_waiting: dict = {}
@@ -3184,17 +3185,47 @@ class KlangtuiTUI(App):
                 self.notify("the radio found nothing similar", timeout=4)
                 self._cmd_queue("")
                 return
+            keep = self._queue[:self._qi + 1] if seed_playing else []
+            picked = self._radio_filter(seed, tracks, keep)
+            if not picked:
+                self.notify("radio's run out of fresh tracks for this one — "
+                            "try /radio <n> from another song", timeout=5)
+                if seed_playing:
+                    self._cmd_queue("")
+                return
             title = f"radio: {seed.get('title') or '?'}"
             if seed_playing:
                 # keep the current track playing, replace everything after it
-                self._queue = self._queue[:self._qi + 1] + tracks
+                self._queue = keep + picked
                 self._refresh_now()
                 self._view_tracks(title, self._queue, mark_index=self._qi)
             else:
-                self._play_tracks([seed] + tracks, 0)
+                self._play_tracks([seed] + picked, 0)
                 self._view_tracks(title, self._queue, mark_index=0)
 
         self._run_view("related", "tuning the radio…", build, track=seed)
+
+    def _radio_filter(self, seed: dict, related: list[dict],
+                      keep: list[dict]) -> list[dict]:
+        """Pick radio tracks the listener hasn't met yet.
+
+        SoundCloud's /related is deterministic and happily returns the seed and
+        songs already in the queue, so a raw append replays old tracks.  Drop the
+        seed, anything already in ``keep`` (the queue we hold onto) and in-list
+        duplicates, then float tracks no past radio has surfaced to the front so
+        repeated presses keep finding new music instead of the same loop."""
+        here = {t.get("id") for t in keep}
+        here.add(seed.get("id"))
+        fresh, heard = [], []
+        for t in related:
+            tid = t.get("id")
+            if tid is None or tid in here:
+                continue
+            here.add(tid)
+            (heard if tid in self._radio_seen else fresh).append(t)
+        picked = fresh + heard
+        self._radio_seen.update(here)
+        return picked
 
     def _cmd_shuffle(self):
         upcoming = len(self._queue) - (self._qi + 1)
