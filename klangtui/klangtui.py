@@ -96,6 +96,7 @@ class PlaybackError(Exception):
 _pw_instance = None
 _pw_ctx      = None   # persistent BrowserContext — cookie jar lives in PROFILE_DIR
 _player_page = None   # hidden about:blank page that owns the <audio> element
+_sc_page     = None   # page parked on soundcloud.com, for authenticated writes
 _client_id   = None   # api-v2 client_id, sniffed from the real site
 _me: dict | None = None     # /me payload when signed in
 _me_checked  = False
@@ -204,14 +205,16 @@ def _ensure_browser(on_status=None):
 
 
 def _close_browser():
-    """Close the context (flushes cookies to the profile) and the player page."""
-    global _pw_ctx, _player_page
-    if _player_page:
-        try:
-            _player_page.close()
-        except Exception:
-            pass
-        _player_page = None
+    """Close the context (flushes cookies to the profile) and the open pages."""
+    global _pw_ctx, _player_page, _sc_page
+    for pg in (_player_page, _sc_page):
+        if pg:
+            try:
+                pg.close()
+            except Exception:
+                pass
+    _player_page = None
+    _sc_page = None
     if _pw_ctx:
         try:
             _pw_ctx.close()
@@ -493,6 +496,33 @@ def _ensure_player():
     if _player_page is None or _player_page.is_closed():
         _player_page = _pw_ctx.new_page()
     return _player_page
+
+
+# A like/unlike is a write, and SoundCloud guards writes with a bot-check
+# (DataDome). Issuing it from inside a real soundcloud.com page makes it carry
+# the browser's cookies, Origin and DataDome token — exactly what the site sends.
+_JS_WRITE = """
+async (args) => {
+  try {
+    const r = await fetch(args.url, {
+      method: args.method,
+      headers: { 'Authorization': 'OAuth ' + args.token, 'Accept': 'application/json' },
+      credentials: 'include',
+    });
+    return r.status;
+  } catch (e) { return -1; }
+}
+"""
+
+
+def _ensure_sc_page():
+    """A page parked on soundcloud.com, reused for authenticated writes."""
+    global _sc_page
+    if _sc_page is None or _sc_page.is_closed():
+        _sc_page = _pw_ctx.new_page()
+        _sc_page.goto("https://soundcloud.com/",
+                      wait_until="domcontentloaded", timeout=45_000)
+    return _sc_page
 
 
 def _resolve_stream(track: dict) -> tuple[str, bool, dict]:
@@ -826,13 +856,37 @@ class SCBackend:
 
     def _like_request(self, method: str, user_id, track_id):
         url = _api_url(f"/users/{user_id}/track_likes/{track_id}")
-        fn  = _pw_ctx.request.put if method == "put" else _pw_ctx.request.delete
-        r   = fn(url, headers=_auth_headers())
+        tok = _cookie_token()
+        if not tok:
+            raise AuthError("you're not signed in — /login first")
+        # 1) the lightweight request context, now with the browser's own
+        #    Origin/Referer so the write doesn't look like a bare script
+        fn = _pw_ctx.request.put if method == "put" else _pw_ctx.request.delete
+        r = fn(url, headers={
+            **_auth_headers(),
+            "Origin": "https://soundcloud.com",
+            "Referer": "https://soundcloud.com/",
+            "Accept": "application/json",
+        })
         if r.status in (200, 201):
             return
         if r.status == 401:
             raise AuthError("SoundCloud session expired — /login again")
-        raise ApiError(f"SoundCloud refused (HTTP {r.status}) — try again later")
+        if r.status != 403:
+            raise ApiError(f"SoundCloud refused (HTTP {r.status}) — try again later")
+        # 2) 403 = write/bot protection. Retry from inside a real soundcloud.com
+        #    page, so it carries the cookies, Origin and DataDome token the site
+        #    uses for its own likes.
+        status = _ensure_sc_page().evaluate(
+            _JS_WRITE, {"url": url, "method": method.upper(), "token": tok})
+        if status in (200, 201):
+            return
+        if status == 401:
+            raise AuthError("SoundCloud session expired — /login again")
+        if status == 403:
+            raise ApiError("SoundCloud is bot-checking writes (403) — open /login "
+                           "once, pass the 'human check' in the window, then try again")
+        raise ApiError(f"SoundCloud refused the like (HTTP {status})")
 
     def _handle_art(self, job: dict):
         url, px = job["url"], job["px"]
