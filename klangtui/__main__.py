@@ -1,3 +1,3 @@
-from klangtui.klangtui import main
+from klangtui.app import main
 
 main()

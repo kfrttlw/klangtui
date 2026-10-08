@@ -1,3 +1,4 @@
-rich
-textual
-playwright
+textual>=8,<9
+rich>=13
+pillow>=10
+playwright>=1.40

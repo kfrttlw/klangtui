@@ -1,78 +1,65 @@
 # klangtui
 
-SoundCloud player in your terminal — search, play, like, playlists.
+SoundCloud in your terminal — search, play, radio, likes, history.
 
-Sister project of [veltui](https://github.com/kfrttlw/veltui), built on the same trick:
-a headless Firefox does the heavy lifting.
+Sister project of [veltui](https://github.com/kfrttlw/veltui).
 
-![klangtui — the Discover front page with real cover art in the terminal](image/g.png)
+![klangtui — the player with the cover and the real waveform, search results below](image/player.png)
 
-*Discover, in the terminal: real cover art drawn in glyphs, a top nav bar with a clickable
-volume mixer, and everything one keystroke away.*
+*No themes: klangtui draws with your terminal's own 16 colours on your terminal's own
+background (transparency included), so it looks like whatever your terminal does.*
 
 <details>
-<summary>… and the <code>/</code> command palette</summary>
+<summary>… the radio, and the <code>?</code> help</summary>
 
-![klangtui — the live command menu](image/f.png)
+![klangtui — a radio queue built around one track](image/radio.png)
+![klangtui — the help box](image/help.png)
 
 </details>
 
 ## Features
 
-- **A top nav bar, like the site** — `home`, `library`, `likes`, `profile` buttons pinned
-  across the top, a quick **search box** in the middle, and a clickable **volume mixer**
-  (`vol ██████──── 80%` — click anywhere on the bar to set the level) on the right; click them,
-  or keep using the commands. The active section is highlighted. A full command input (with
-  history + `/` autocomplete) also sits at the bottom, under the player bar
-- **The front page, in your terminal** — launching lands you on Discover: rows of square
-  playlist cards with **real cover art**, drawn as crisp 2×2 quadrant "pixels" (twice the
-  detail of plain half-blocks; `/pixels half` reverts). Scroll the rows sideways, like the
-  site — and `/zoom +` / `/zoom -` make the cards bigger or smaller
-- **Click the player bar to open the track** — the bottom bar opens a compact track page: a
-  small cover on the left with the title, artist and transport buttons (prev · ▶/|| · next ·
-  vol -/+ · like · radio) stacked to its right, the real waveform as a **clickable scrubber**
-  with live `0:42 / 3:20` times across the full width below, and the rest of the track's
-  details underneath. The whole top block stays on screen at any window size — even a tiny
-  tiling-WM square — so seeking and skipping never need a scroll. It follows along: skip or
-  auto-advance and the page re-syncs to the new track
-- **Mouse or keyboard** — click any card or track to play it, or `Tab` into the page,
-  arrows to move, `Enter` to play, `Esc` to go home. Every item is numbered too, so
-  `/play <n>` always works
-- **Search like the site** — playlist & people cards on top, track rows (with cover
-  thumbnails) below; `/play <n>` plays a track, opens-and-plays a playlist, opens a
-  person's tracks. Narrow it like the site's tabs: `/search tracks|playlists|people <text>`
-- **The real waveform as the progress bar** — SoundCloud's signature scrubber, drawn in
-  glyphs (`▂▅▇█▅…`), the played part lights up · plus a tiny equalizer dancing by the title
-- **Audio comes out of a headless Firefox** — no mpv, no ffmpeg, nothing extra to install
-- **Real SoundCloud login** — `/login` opens a normal Firefox window where you sign in on the
-  real site (captchas, Google sign-in and SoundCloud's bot-check all just work because *you*
-  do it); the session is then remembered between runs
-- **Likes & playlists** — `/like`, `/likes`, `/playlists`, `/playlist <n>`, `/profile`
-- **Radio** — `/radio` queues an endless run of tracks similar to what's playing
-- **Queue** — `/next`, `/prev`, `/queue`, `/add <n>`, `/shuffle`, `/repeat off|all|one`,
-  auto-advance when a track ends
-- **Open links** — paste any `soundcloud.com` track/playlist/artist URL (or `/open <url>`)
-- Full-screen [Textual](https://textual.textualize.io/) TUI — nav bar + volume mixer pinned on top,
-  results scroll in the middle, the clickable player bar and the command input docked at the
-  bottom
-- **8 color themes** — ember, vinyl, neon, aurora, ocean, grape, mono, haze
-  (`/theme` or `Ctrl+T` to cycle)
-- **Command autocomplete** — type `/` for a live command menu; `Tab` (or `↑`/`↓`) to move
-- **Input history** — `↑`/`↓` recall previous searches and commands, like a shell
-- Persistent theme & volume preference (remembered between sessions)
-- Works on Linux (Arch, etc.), macOS and Windows
+- **Looks like your terminal** — thin boxes, titles in the frame, `[tab]` on top,
+  `[?] help` at the bottom; the colours are your terminal's ANSI palette, the
+  background is its background. Change your kitty / alacritty / foot theme and klangtui
+  follows
+- **Keyboard first, like lazygit** — `j`/`k` to move, `enter` to play, `space` to
+  pause, `n`/`p` to skip, `/` to search, `:` for commands, `?` for help, `1`–`6` for the
+  tabs. The mouse works too: click a tab, click a row twice, click the waveform to seek,
+  scroll over the player for volume
+- **Radio that doesn't repeat itself** — built from the track's *station* (what the
+  site's Station button plays) and its related tracks, seeded from the last few songs you
+  actually listened to, at most two tracks per artist, nothing you've heard in the last
+  three days, no 30-second previews. It tops itself up as it plays
+- **Autoplay** — when the queue ends, the radio carries on with something similar
+  (`:autoplay off` to stop at the end instead)
+- **Remembers you** — every play goes into a local history (the `history` tab); the queue
+  and the position you quit at come back next time (`space` resumes); search and
+  command history survive restarts; your likes are known from the start
+- **The real waveform** as the scrubber, a small **cover** next to it, and the next
+  track underneath
+- **30-second Go+ previews are marked** (`30s`) before you press play
+- **Likes & playlists** — `likes` and `library` tabs, `l` to like, `L` for the playing track
+- **Paste a link** — `/` + any soundcloud.com track / playlist / artist URL opens it
+- **Light** — no browser in the background: plain HTTPS for SoundCloud, mpv for sound.
+  The app itself sits around 50 MB
 
 ## Install
 
-Quick (installs klangtui + its deps + the `klangtui` command):
+klangtui plays audio through **mpv**:
+
+```bash
+sudo pacman -S mpv        # Arch
+sudo apt install mpv      # Debian / Ubuntu
+brew install mpv          # macOS
+```
+
+Then klangtui itself:
 
 ```bash
 pip install git+https://github.com/kfrttlw/klangtui
 klangtui
 ```
-
-On the first run klangtui downloads its headless Firefox automatically (~80 MB),
-so you don't have to. If you'd rather fetch it up front: `playwright install firefox`.
 
 <details>
 <summary>From source</summary>
@@ -83,115 +70,99 @@ Needs Python 3.10+.
 git clone https://github.com/kfrttlw/klangtui
 cd klangtui
 python -m venv .venv
-
-# Linux / macOS
 source .venv/bin/activate
-# Windows
-.venv\Scripts\Activate.ps1
-
 pip install -r requirements.txt
-python klangtui/klangtui.py
+python -m klangtui
 ```
 </details>
+
+Linux and macOS. (Windows isn't supported yet — klangtui talks to mpv over a Unix socket.)
 
 ## Usage
 
 ```bash
 klangtui
-```
-
-With options:
-
-```bash
-klangtui --help
 klangtui -q "aphex twin"   # search right after starting
-klangtui --clear-data      # delete settings + the saved SoundCloud login
+klangtui --clear-data      # delete settings, history and the saved login
 ```
 
-Inside the app, anything you type that isn't a command is a search.
+### Keys
 
-## In-app commands
-
-| command | description |
+| key | does |
 |---|---|
-| `/help` | show all commands |
-| `/keys` | keyboard shortcuts |
-| `/search <text>` | search it all — tracks, playlists, people (typing works too) |
-| `/search tracks <text>` | narrow the search: `tracks` · `playlists` · `people` |
-| `/discover` | SoundCloud's front page — charts & curated selections |
-| `/home` | back to the front page (`Esc` from an empty prompt too) |
-| `/open <url>` | open a soundcloud.com link (track/playlist/artist) |
-| `/play <n>` | play item n — playlists open & play, people open |
-| `/play` | resume playback |
-| `/pause` | pause (`Ctrl+P` toggles) |
-| `/next` / `/prev` | move through the queue |
-| `/queue` | show the queue (`/queue <n>` jumps) |
-| `/add <n>` | add item n from the last list to the queue |
-| `/seek <m:ss\|±s>` | seek — `/seek 1:30` · `/seek +15` |
-| `/volume <0-100>` | set the volume (or click the mixer top-right) |
-| `/radio [n]` | endless radio from the playing track (or item n) |
-| `/shuffle` | shuffle the rest of the queue |
-| `/repeat [mode]` | repeat: off · all · one (bare `/repeat` cycles) |
-| `/np` | now-playing details (or click the player bar) |
-| `/like [n]` | like the playing track (or item n) |
-| `/unlike [n]` | remove a like |
-| `/likes` | your liked tracks |
-| `/playlists` | your playlists & albums |
-| `/playlist <n>` | open playlist n |
-| `/profile` | your profile |
-| `/login` | sign in — opens a Firefox window, you log in on the real site |
-| `/logout` | sign out |
-| `/theme [n\|name]` | color themes (`Ctrl+T` cycles) |
-| `/zoom [+\|-\|n]` | resize the playlist cards (`+` bigger · `-` smaller · `reset`) |
-| `/pixels [quad\|half]` | artwork detail — crisp 2×2 quadrants (default) or simple blocks |
-| `/clear` | clear the screen (`Ctrl+L`) |
-| `/exit` | quit |
+| `1`–`6` · `tab` · `[` `]` | tabs: home · search · likes · library · queue · history |
+| `j` `k` · `↑` `↓` | move (`g` / `G` top / bottom, `ctrl+d` / `ctrl+u` page) |
+| `enter` | play a track · open a playlist or an artist |
+| `esc` | back · close the prompt · cancel sign-in |
+| `/` | search — or paste a soundcloud.com link |
+| `:` | command line (`tab` completes) |
+| `space` | play / pause |
+| `n` `p` | next / previous track |
+| `←` `→` | seek 5 s (`shift`: 30 s) |
+| `+` `-` | volume |
+| `r` | radio from the selected track |
+| `l` `L` | like the selected / the playing track |
+| `a` `A` | add to the queue · play next |
+| `d` | remove from the queue (queue tab) |
+| `s` | shuffle what's coming up |
+| `m` | repeat: off → all → one |
+| `i` `o` | info · open on soundcloud.com |
+| `ctrl+r` | reload the page |
+| `q` | quit |
 
-`:help` also works as an alias for `/help`.
+### Commands
+
+| command | does |
+|---|---|
+| `:search [tracks\|sets\|people] <text>` | search, optionally narrowed |
+| `:open <url>` | open a soundcloud.com link |
+| `:radio` | radio from the playing track |
+| `:like` · `:unlike` | like / unlike the playing track |
+| `:volume <0-100>` · `:seek <m:ss\|±s>` | volume · jump within the track |
+| `:repeat off\|all\|one` | repeat mode |
+| `:autoplay on\|off` | keep playing similar music when the queue ends |
+| `:previews on\|off` | let the radio queue 30-second Go+ previews |
+| `:cover on\|off` | the cover in the player |
+| `:shuffle` · `:clear` | shuffle what's next · empty the queue |
+| `:history clear` | forget your listening history |
+| `:login` · `:logout` | sign in / out |
+| `:help` · `:quit` | |
 
 ## How it works
 
-klangtui keeps a real soundcloud.com session in a headless Firefox (via
-[Playwright](https://playwright.dev/python/)). The browser does three jobs:
-
-1. **It holds the login.** `/login` opens a visible Firefox window on the same profile —
-   you sign in on the real site (captcha / Google / 2FA / bot-check included), the cookies
-   land in `~/.klangtui/profile`, and the session survives restarts.
-2. **It authenticates the data.** Search, likes and playlists go through
-   SoundCloud's own web API, sent from the browser's session with its own cookies —
-   the same calls the website makes for itself.
-3. **It plays the sound.** Tracks play inside an `<audio>` element in the headless
-   browser, which still routes media through your normal audio output. That's why
-   there is no mpv/ffmpeg dependency and the same code works on Arch, macOS and
-   Windows.
-4. **It decodes the artwork.** Cover images are scaled down on a `<canvas>` inside
-   the same browser and come back as raw pixels, which the TUI paints with `▀`
-   half-blocks — real cover art in the terminal, with no image library installed.
-
-That's also why the first launch grabs a headless Firefox, and why the very first
-search takes a moment — the browser is spinning up.
+- **SoundCloud over plain HTTPS.** klangtui makes the same api-v2 calls the website
+  makes. The public `client_id` is read from soundcloud.com's own page (and swapped for a
+  fresh one by itself when SoundCloud rotates it). Connections are kept alive and
+  reused; a hiccup is retried once.
+- **Sound through mpv.** One mpv process, no window, driven over its JSON IPC socket
+  (in a private directory). mpv pushes position / pause / end-of-track events, so
+  nothing is polled. It plays the plain mp3 stream when there is one and SoundCloud's
+  HLS (AAC) otherwise — the same streams the web player uses.
+- **A browser only to sign in.** `:login` opens a normal Firefox window (via
+  Playwright) where you sign in on the real site — captcha, Google sign-in and 2FA just
+  work because *you* do it. klangtui keeps the session token and closes the browser. If
+  SoundCloud's bot-check ever refuses a like, the like is retried once from a short-lived
+  headless Firefox.
+- **Everything it remembers** lives in `~/.klangtui`: `db.sqlite` (settings, history,
+  queue, likes), `token` (your sign-in, readable only by you) and `profile` (the sign-in
+  browser's profile).
 
 ## Notes
 
-- **No account needed to listen.** Search and playback work as a guest; `/login`
-  is only for likes, playlists and your profile.
-- **Go+ / HLS-only tracks.** klangtui plays the plain progressive streams the web
-  player exposes. Tracks that only ship HLS (usually Go+ catalogue) are reported,
-  not played — klangtui never tries to get around what the web player would allow,
-  and Go+ previews stay previews.
-- **Playback stops during `/login`** — the headless browser restarts to hand the profile
-  to the visible window while you sign in.
-- **Local data.** `~/.klangtui` holds your settings (theme, volume) and the Firefox
-  profile with your SoundCloud cookies. It's your login — treat it like one.
-  `--clear-data` (or `/logout`) gets rid of it.
+- **No account needed to listen.** Search, radio and playback work as a guest;
+  `:login` adds likes, your playlists and your profile.
+- **Go+ tracks** play as the 30-second previews SoundCloud gives every non-subscriber —
+  klangtui never tries to get around what the web player allows.
+- **Signed in with klangtui 0.1?** Your login is picked up from the old profile
+  automatically.
 
 ## Disclaimer
 
 klangtui is an unofficial, personal/educational project and is **not affiliated
-with, endorsed by, or supported by SoundCloud**. It drives the public SoundCloud
-web app in a local browser session — playback only, no downloading, no DRM
-circumvention. Please use it responsibly, don't hammer the service, and read
-SoundCloud's own terms if you depend on it.
+with, endorsed by, or supported by SoundCloud**. It uses the public SoundCloud web API
+the way the website does — playback only, no downloading, no DRM circumvention. Please
+use it responsibly, don't hammer the service, and read SoundCloud's own terms if you
+depend on it.
 
 ## License
 

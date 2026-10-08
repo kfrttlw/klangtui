@@ -19,8 +19,16 @@ venv/
 .idea/
 .DS_Store
 
-# klangtui local data (prefs + the Firefox profile live in ~/.klangtui, but just in case)
+# klangtui local data — it all lives in ~/.klangtui, but never let a copy in:
+# the database (settings, history, queue, likes), the sign-in token, the
+# cached client_id and the sign-in browser's profile (cookies)
+.klangtui/
 *.sqlite
+*.sqlite-wal
+*.sqlite-shm
+/token
+/client_id
+/profile/
 
 # the reference project that lives next to klangtui — it has its own repo
 veltui_dor_demo/

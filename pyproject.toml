@@ -4,29 +4,32 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "klangtui"
-version = "0.1.0"
-description = "SoundCloud player in your terminal — search, play, like, playlists"
+version = "0.2.0"
+description = "SoundCloud in your terminal — search, play, radio, likes, history"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "kfrt" }]
+# Audio plays through mpv (install it with your package manager).
+# Pillow draws the cover; playwright only opens the sign-in window.
 dependencies = [
-    "rich",
-    "textual",
-    "playwright",
+    "textual>=8,<9",
+    "rich>=13",
+    "pillow>=10",
+    "playwright>=1.40",
 ]
 
 [project.urls]
 Homepage = "https://github.com/kfrttlw/klangtui"
 
 [project.scripts]
-klangtui = "klangtui.klangtui:main"
+klangtui = "klangtui.app:main"
 
 [tool.setuptools]
 packages = ["klangtui"]
 
 [tool.ruff]
 # Same deal as veltui: PEP 8 allows a 99-column limit for teams that agree on
-# it, and klangtui's aligned tables (commands, themes) read better unwrapped.
+# it, and klangtui's aligned tables (keys, commands) read better unwrapped.
 line-length = 99
 
 [tool.ruff.lint]
